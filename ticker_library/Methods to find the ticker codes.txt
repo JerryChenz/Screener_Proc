@@ -1,0 +1,12 @@
+1. nasdaq.com
+https://www.nasdaq.com/market-activity/stocks/screener?exchange=NASDAQ&render=download
+
+2. hkex.com.hk
+https://www.hkex.com.hk/Products/Securities/Equities?sc_lang=en
+https://www.hkex.com.hk/eng/services/trading/securities/securitieslists/ListOfSecurities.xlsx
+
+3. sse.com.cn
+http://www.sse.com.cn/assortment/stock/list/share/
+
+4. www.szse.cn
+http://www.szse.cn/market/product/stock/list/index.html
