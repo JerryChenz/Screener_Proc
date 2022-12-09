@@ -5,6 +5,9 @@ class Screener:
     def __init__(self):
         self.tickers = []
 
+    def load(self):
+        pass
+
     def low_ev(self, threshold):
         """find stocks with negative enterprise value"""
 
