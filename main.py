@@ -2,8 +2,12 @@ import scrape_data
 import clean_data
 
 if __name__ == "__main__":
-    # Example list of tickers
+    # Step 1: Example list of tickers
     ticker_list = ['AAPL', 'MSFT', 'GOOGL', 'KHC', 'SIRI']
-    csv_name = 'US'
+    csv_name = 'us'
     scrape_data.scrape_yfinance(ticker_list, csv_name)
-    # clean_data.clean_scraped_data()
+
+    # Step 2: Clean Data
+    clean_data.clean_scraped_data()
+
+    # Step 3: Screen
