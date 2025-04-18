@@ -58,7 +58,8 @@ def get_ticker_data(ticker, retries=3, wait_time=10):
                 'Industry': info.get('industry', 'N/A'),
                 'Market Price': info.get('currentPrice', None),
                 'Market Currency': info.get('currency', 'N/A'),
-                'Market_Cap': info.get('marketCap', None)
+                'Report Currency': info.get('financialCurrency', 'N/A'),
+                'Market Cap': info.get('marketCap', None)
             }
             # Extract financial year-end date
             last_fiscal_end = info.get('lastFiscalYearEnd')
@@ -138,7 +139,8 @@ def scrap_yfinance(tickers, csv_name):
     # Define output directory and ensure it exists
     output_dir = os.path.join(os.getcwd(), 'data', 'scraped_data')
     os.makedirs(output_dir, exist_ok=True)
-    output_file = os.path.join(output_dir, f'{csv_name}.csv')
+    timestamp = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
+    output_file = os.path.join(output_dir, f'{csv_name}_{timestamp}.csv')
 
     # Save DataFrame to CSV
     df.to_csv(output_file, index=False)
