@@ -14,10 +14,9 @@ The script includes error handling with retries and processes tickers in batches
 Input:
     - A list of stock tickers (e.g., ['AAPL', 'MSFT', 'GOOGL']).
 
-Output:
-    - A CSV file named `scraped_data.csv` containing the scraped financial data for each ticker.
-    - The CSV file is saved in the `data/scraped_data` directory relative to the current working directory.
-    - A list of any tickers that failed to process is printed to the console.
+Output: - A CSV file named `{csv_name}_YYYYMMDDHHMMSS.csv` (e.g., `scraped_data_20231015123456.csv`) containing the 
+scraped financial data for each ticker. - The CSV file is saved in the `data/scraped_data` directory relative to the 
+current working directory. - A list of any tickers that failed to process is printed to the console.
 
 Important Notes:
     - The script retries failed requests up to 3 times with a 10-second wait between retries.
@@ -29,12 +28,15 @@ Important Notes:
         - Industry
         - Market Price
         - Market Currency
+        - Report Currency
         - Market Capitalization
         - Financial Year End Date
         - Past Financial Year Dividends
-        - Latest Total Liability
+        - Latest Total Debt
         - Latest Total Asset
         - Past Annual Sales
+        - Past Annual Cost of Goods Sold
+        - Past Annual Operating Expenses
         - Past Annual Net Income
         - Past Annual Operating Cash Flow
         - Past Annual Financing Cash Flow
@@ -46,6 +48,14 @@ def get_ticker_data(ticker, retries=3, wait_time=10):
     """
     Fetch financial data for a single ticker from Yahoo Finance.
     Retries on failure with a delay.
+
+    Args:
+        ticker (str): Stock ticker symbol.
+        retries (int): Number of retry attempts (default: 3).
+        wait_time (int): Seconds to wait between retries (default: 10).
+
+    Returns:
+        dict: Financial data for the ticker, or None if fetching fails.
     """
     for attempt in range(retries):
         try:
@@ -75,7 +85,7 @@ def get_ticker_data(ticker, retries=3, wait_time=10):
             if not balance_sheet.empty:
                 latest_date = balance_sheet.columns.max()
                 latest_balance = balance_sheet[latest_date]
-                data['Latest Total Liability'] = latest_balance.get('Total Liab', None)
+                data['Latest Total Debt'] = latest_balance.get('Total Debt', None)
                 data['Latest Total Asset'] = latest_balance.get('Total Assets', None)
             else:
                 data['Latest Total Liability'] = None
@@ -86,9 +96,21 @@ def get_ticker_data(ticker, retries=3, wait_time=10):
                 latest_date = financials.columns.max()
                 latest_financials = financials[latest_date]
                 data['Past Annual Sales'] = latest_financials.get('Total Revenue', None)
+                data['Past Annual Cogs'] = latest_financials.get('Cost Of Revenue', None)
+                # Operating Expenses: Calculate if direct key not found
+                opex = latest_financials.get('Total Operating Expenses', None)
+                if opex is None:
+                    gross_profit = latest_financials.get('Gross Profit', None)
+                    operating_income = latest_financials.get('Operating Income', None)
+                    if gross_profit is not None and operating_income is not None:
+                        opex = gross_profit - operating_income  # Derived
+                data['Past Annual Opex'] = opex
                 data['Past Annual Net Income'] = latest_financials.get('Net Income', None)
             else:
                 data['Past Annual Sales'] = None
+                data['Past Annual Cogs'] = None
+                data['Past Annual Opex'] = None
+                data['Past Annual R&D'] = None
                 data['Past Annual Net Income'] = None
             # Get latest cash flow data
             cashflow = stock.cashflow
@@ -115,7 +137,15 @@ def get_ticker_data(ticker, retries=3, wait_time=10):
 def scrape_tickers(tickers, batch_size=10, retries=3, wait_time=10):
     """
     Scrape data for a list of tickers in batches.
-    Returns a DataFrame and a list of failed tickers.
+
+    Args:
+        tickers (list): List of stock ticker symbols.
+        batch_size (int): Number of tickers per batch (default: 10).
+        retries (int): Number of retry attempts per ticker (default: 3).
+        wait_time (int): Seconds to wait between retries (default: 10).
+
+    Returns:
+        tuple: (pandas DataFrame of scraped data, list of failed tickers)
     """
     all_data = []
     failed_tickers = []
@@ -131,8 +161,14 @@ def scrape_tickers(tickers, batch_size=10, retries=3, wait_time=10):
     return pd.DataFrame(all_data), failed_tickers
 
 
-def scrap_yfinance(tickers, csv_name):
-    """Main function to scrape data and save it to a CSV file."""
+def scrape_yfinance(tickers, csv_name='scraped_data'):
+    """
+    Main function to scrape data and save it to a CSV file.
+
+    Args:
+        tickers (list): List of stock ticker symbols.
+        csv_name (str): Base name for the output CSV file (default: 'scraped_data').
+    """
     # Scrape data
     df, failed_tickers = scrape_tickers(tickers)
 
