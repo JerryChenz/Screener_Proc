@@ -1,4 +1,4 @@
-# README: Stock Screening Tool for Value Investors
+# Stock Screening Tool for Value Investors
 
 ## Why Use This Tool?
 This tool helps investors find high-quality companies at reasonable prices. It automates the process of identifying stocks that balance value, profitability, and risk, saving hours of manual research. Inspired by strategies like Joel Greenblatt’s “Magic Formula,” it prioritizes companies that:
