@@ -32,8 +32,10 @@ Important Notes:
         - Market Capitalization
         - Financial Year End Date
         - Past Financial Year Dividends
+        - Latest Invested Capital
         - Latest Total Debt
         - Latest Total Asset
+        - Latest Common Equity
         - Past Annual Sales
         - Past Annual Cost of Goods Sold
         - Past Annual Operating Expenses
@@ -85,11 +87,15 @@ def get_ticker_data(ticker, retries=3, wait_time=10):
             if not balance_sheet.empty:
                 latest_date = balance_sheet.columns.max()
                 latest_balance = balance_sheet[latest_date]
+                data['Latest Invested Capital'] = latest_balance.get('Invested Capital', None)
                 data['Latest Total Debt'] = latest_balance.get('Total Debt', None)
                 data['Latest Total Asset'] = latest_balance.get('Total Assets', None)
+                data['Latest Common Equity'] = latest_balance.get('Common Stock Equity', None)
             else:
-                data['Latest Total Liability'] = None
+                data['Latest Invested Capital'] = None
+                data['Latest Total Debt'] = None
                 data['Latest Total Asset'] = None
+                data['Latest Common Equity'] = None
             # Get latest financials (sales and net income)
             financials = stock.financials
             if not financials.empty:
