@@ -59,7 +59,7 @@ if __name__ == "__main__":
 
     # Step 1: Example list of tickers
     tickers_list = json_to_list(json_file_path)
-    csv_name = 'us'
+    csv_name = 'hk'
     scrape_data.scrape_yfinance(tickers_list, csv_name)
 
     # Step 2: Clean Data
