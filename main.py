@@ -19,7 +19,8 @@ Output:
 Results are saved to data/screened_data with region-specific files (e.g., us_screened.csv).
 """
 
-import scrape_data
+import scrape_data_yfinance
+# import scrape_data_yahooquery
 import clean_data
 import screen_data
 import json
@@ -58,12 +59,12 @@ if __name__ == "__main__":
     json_file_path = 'data/ticker_library/hk_unique_tickers.json'
 
     # Step 1: Example list of tickers
-    tickers_list = json_to_list(json_file_path)
-    csv_name = 'hk'
-    scrape_data.scrape_yfinance(tickers_list, csv_name)
+    # tickers_list = json_to_list(json_file_path)
+    # csv_name = 'hk'
+    # scrape_data_yfinance.scrape_yfinance(tickers_list, csv_name)
 
     # Step 2: Clean Data
-    # clean_data.clean_scraped_data()
+    clean_data.clean_scraped_data()
 
     # Step 3: Screen
-    # screen_data.screen_companies()
+    screen_data.screen_companies()

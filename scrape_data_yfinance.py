@@ -158,11 +158,14 @@ def scrape_tickers(tickers, batch_size=10, retries=3, wait_time=10):
     for i in range(0, len(tickers), batch_size):
         batch = tickers[i:i + batch_size]
         for ticker in batch:
+            print(f"processing {ticker}...")
             data = get_ticker_data(ticker, retries, wait_time)
             if data:
                 all_data.append(data)
+                print(f"{ticker} done.")
             else:
                 failed_tickers.append(ticker)
+                print(f"{ticker} failed.")
         time.sleep(1)  # Delay between batches to avoid overloading API
     return pd.DataFrame(all_data), failed_tickers
 
