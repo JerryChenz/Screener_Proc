@@ -75,7 +75,7 @@ def screen_companies():
 
         # Select relevant columns for output
         output_columns = [
-            'Ticker', 'Company Name', 'Industry', 'Market Price', 'Market Currency',
+            'Ticker', 'Company Name', 'Industry', 'Market Price', 'Market Cap', 'Market Currency',
             'EBIT/Market Cap', 'ROIC', 'D/P', 'Total Debt/Common Equity', 'Combined_rank'
         ]
         df_output = df_sorted[output_columns]
