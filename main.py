@@ -56,15 +56,16 @@ def json_to_list(json_file):
 
 
 if __name__ == "__main__":
-    json_file_path = 'data/ticker_library/hk_unique_tickers.json'
+    hk_json_path = 'data/ticker_library/hk_unique_tickers.json'
+    us_json_path = 'data/ticker_library/us_unique_tickers.json'
 
     # Step 1: Example list of tickers
-    # tickers_list = json_to_list(json_file_path)
-    # csv_name = 'hk'
-    # scrape_data_yfinance.scrape_yfinance(tickers_list, csv_name)
+    tickers_list = json_to_list(us_json_path)
+    csv_name = 'us'
+    scrape_data_yfinance.scrape_yfinance(tickers_list, csv_name)
 
     # Step 2: Clean Data
-    clean_data.clean_scraped_data()
+    # clean_data.clean_scraped_data()
 
     # Step 3: Screen
-    screen_data.screen_companies()
+    # screen_data.screen_companies()
