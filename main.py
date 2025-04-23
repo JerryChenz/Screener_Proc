@@ -24,6 +24,12 @@ import clean_data
 import screen_data
 import json
 
+hk_json_path = 'data/ticker_library/hk_unique_tickers.json'
+nasdaq_json_path = 'data/ticker_library/us_nasdaq_tickers.json'
+nyse_json_path = 'data/ticker_library/us_nyse_tickers.json'
+ss_json_path = 'data/ticker_library/cn_ss_tickers.json'
+sz_json_path = 'data/ticker_library/cn_sz_tickers.json'
+
 
 def json_to_list(json_file):
     """
@@ -55,12 +61,6 @@ def json_to_list(json_file):
 
 
 if __name__ == "__main__":
-    hk_json_path = 'data/ticker_library/hk_unique_tickers.json'
-    nasdaq_json_path = 'data/ticker_library/us_nasdaq_tickers.json'
-    nyse_json_path = 'data/ticker_library/us_nyse_tickers.json'
-    ss_json_path = 'data/ticker_library/cn_ss_tickers.json'
-    sz_json_path = 'data/ticker_library/cn_sz_tickers.json'
-
     # Step 1: Example list of tickers
     # tickers_list = json_to_list(ss_json_path)
     # failed_tickers = []
