@@ -140,7 +140,7 @@ def get_ticker_data(ticker, retries=3, wait_time=10):
                 return None
 
 
-def scrape_tickers(tickers, batch_size=10, retries=3, wait_time=10):
+def scrape_tickers(tickers, batch_size=10, retries=3, wait_time=30):
     """
     Scrape data for a list of tickers in batches.
 

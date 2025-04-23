@@ -60,12 +60,13 @@ if __name__ == "__main__":
     us_json_path = 'data/ticker_library/us_unique_tickers.json'
 
     # Step 1: Example list of tickers
-    tickers_list = json_to_list(us_json_path)
-    csv_name = 'us'
-    scrape_data_yfinance.scrape_yfinance(tickers_list, csv_name)
+    # tickers_list = json_to_list(us_json_path)
+    # failed_tickers = []
+    # csv_name = 'us'
+    # scrape_data_yfinance.scrape_yfinance(tickers_list, csv_name)
 
     # Step 2: Clean Data
-    # clean_data.clean_scraped_data()
+    clean_data.clean_scraped_data()
 
     # Step 3: Screen
-    # screen_data.screen_companies()
+    screen_data.screen_companies()
