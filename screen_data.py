@@ -4,13 +4,15 @@ import os
 
 def screen_companies():
     """
-    Screen companies based on the combined ranking of four financial metrics:
-    1. EBIT/P (Earnings Yield)
-    2. ROIC (Return on Invested Capital)
-    3. D/P (Dividend Yield)
-    4. Total Debt/Total Assets (Debt to Total Assets Ratio)
+    Screen companies based on a combined ranking using three financial metrics:
+    1. EBIT/Market Cap (higher is better)
+    2. ROIC (higher is better)
+    3. Composite indicator of Dividend per share/Price and Total Debt/Common Equity
 
-    The function reads cleaned data from 'data/cleaned_data' and saves the screened results to 'data'.
+    The composite indicator is formed by summing the ranks of Dividend Yield (higher better)
+    and Debt to Equity Ratio (lower better), then ranking that sum. Companies with negative
+    or zero common equity are handled separately in the Debt to Equity ranking.
+    Results are saved to 'data' directory from cleaned data in 'data/cleaned_data'.
     """
     # Define directories
     cleaned_dir = os.path.join(os.getcwd(), 'data', 'cleaned_data')
@@ -59,18 +61,34 @@ def screen_companies():
             print(f"No valid data remaining for {region} after filtering.")
             continue
 
-        # Rank each metric
+        # Identify companies with positive common equity
+        df_valid['positive_equity'] = df_valid['Latest Common Equity'] > 0
+
+        # Rank individual metrics
         df_valid['EBIT/Market Cap_rank'] = df_valid['EBIT/Market Cap'].rank(ascending=False, method='min')
         df_valid['ROIC_rank'] = df_valid['ROIC'].rank(ascending=False, method='min')
         df_valid['D/P_rank'] = df_valid['D/P'].rank(ascending=False, method='min')
-        df_valid['Total Debt/Common Equity_rank'] = df_valid['Total Debt/Common Equity'].rank(ascending=True, method='min')
 
-        # Calculate combined rank
-        df_valid['Combined_rank'] = df_valid[
-            ['EBIT/Market Cap_rank', 'ROIC_rank', 'D/P_rank', 'Total Debt/Common Equity_rank']
-        ].sum(axis=1)
+        # Rank Total Debt/Common Equity, handling negative/zero common equity
+        M = df_valid['positive_equity'].sum()  # Number of companies with positive equity
+        df_valid.loc[df_valid['positive_equity'], 'Total Debt/Common Equity_rank'] = (
+            df_valid.loc[df_valid['positive_equity'], 'Total Debt/Common Equity'].rank(ascending=True, method='min')
+        )
+        sub_rank = df_valid.loc[~df_valid['positive_equity'], 'Latest Total Debt'].rank(ascending=True, method='min')
+        df_valid.loc[~df_valid['positive_equity'], 'Total Debt/Common Equity_rank'] = M + sub_rank
 
-        # Sort by combined rank (ascending)
+        # Calculate composite indicator
+        df_valid['composite_score'] = df_valid['D/P_rank'] + df_valid['Total Debt/Common Equity_rank']
+        df_valid['composite_rank'] = df_valid['composite_score'].rank(ascending=True, method='min')
+
+        # Calculate combined rank using the three components
+        df_valid['Combined_rank'] = (
+            df_valid['EBIT/Market Cap_rank'] +
+            df_valid['ROIC_rank'] +
+            df_valid['composite_rank']
+        )
+
+        # Sort by combined rank (ascending, lower is better)
         df_sorted = df_valid.sort_values('Combined_rank')
 
         # Select relevant columns for output
