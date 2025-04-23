@@ -2,31 +2,57 @@ import pandas as pd
 import os
 import glob
 import re
-import yfinance as yf
+from yahooquery import Ticker
 import time
 
 
-def fetch_current_prices(tickers, retries=3, wait_time=10):
+def fetch_stock_data(tickers, retries=3, wait_time=10):
     """
-    Fetch the current market prices for a list of tickers using yfinance.
-    Returns a dictionary of ticker to current price, with None for failed fetches.
+    Fetch the current market prices and market capitalizations for a list of tickers using yahooquery.
+    Returns a dictionary of ticker to {'price': price, 'market_cap': market_cap}, with None for failed fetches.
     """
-    prices = {}
+    data = {}
+    ticker_obj = Ticker(tickers)
+    quotes = ticker_obj.quotes
+    summary_detail = ticker_obj.summary_detail
+
+    failed_tickers = []
     for ticker in tickers:
+        quote = quotes.get(ticker)
+        detail = summary_detail.get(ticker)
+        if isinstance(quote, dict) and isinstance(detail, dict):
+            price = quote.get('regularMarketPrice')
+            market_cap = detail.get('marketCap')
+            if price is not None and market_cap is not None:
+                data[ticker] = {'price': price, 'market_cap': market_cap}
+            else:
+                failed_tickers.append(ticker)
+        else:
+            failed_tickers.append(ticker)
+
+    # Retry failed tickers individually
+    for ticker in failed_tickers:
         for attempt in range(retries):
             try:
-                stock = yf.Ticker(ticker)
-                prices[ticker] = stock.fast_info['lastPrice']
-                break
+                stock = Ticker(ticker)
+                quote = stock.quotes[ticker]
+                detail = stock.summary_detail[ticker]
+                if isinstance(quote, dict) and isinstance(detail, dict):
+                    price = quote.get('regularMarketPrice')
+                    market_cap = detail.get('marketCap')
+                    if price is not None and market_cap is not None:
+                        data[ticker] = {'price': price, 'market_cap': market_cap}
+                        break
+                time.sleep(wait_time)
             except Exception as e:
                 print(f"Attempt {attempt + 1} failed for {ticker}: {e}")
                 if attempt < retries - 1:
                     time.sleep(wait_time)
                 else:
-                    print(f"Failed to fetch price for {ticker} after {retries} attempts.")
-                    prices[ticker] = None
-        time.sleep(0.5)  # Small delay between tickers to avoid API overload
-    return prices
+                    print(f"Failed to fetch data for {ticker} after {retries} attempts.")
+                    data[ticker] = None
+
+    return data
 
 
 def clean_scraped_data(skip=True):
@@ -39,8 +65,8 @@ def clean_scraped_data(skip=True):
     Saves the consolidated data to `us_screen_data.csv`, `cn_screen_data.csv`, and
     `hk_screen_data.csv` in `data/cleaned_data`.
 
-    If skip is false and the clean file exists, only updates the 'Market Price' column
-    efficiently using yfinance, with retries for failed API calls.
+    If skip is False and the clean file exists, updates the 'Market Price' and 'Market Cap'
+    columns efficiently using yahooquery, with retries for failed API calls.
 
     If no CSV files or missing one or all regional CSV files, skips that region.
 
@@ -68,23 +94,27 @@ def clean_scraped_data(skip=True):
         clean_file = os.path.join(clean_dir, f"{region}_screen_data.csv")
 
         if skip is False and os.path.exists(clean_file):
-            # Update only market prices
-            print(f"Updating market prices for region {region}")
+            # Update market prices and market caps
+            print(f"Updating market prices and market caps for region {region}")
             try:
                 df = pd.read_csv(clean_file)
-                if 'Ticker' not in df.columns or 'Market Price' not in df.columns:
-                    print(f"Error: Required columns 'Ticker' or 'Market Price' not found in {clean_file}")
+                if 'Ticker' not in df.columns or 'Market Price' not in df.columns or 'Market Cap' not in df.columns:
+                    print(
+                        f"Error: Required columns 'Ticker', 'Market Price', or 'Market Cap' not found in {clean_file}")
                     continue
                 tickers = df['Ticker'].tolist()
-                updated_prices = fetch_current_prices(tickers)
-                successful_prices = {k: v for k, v in updated_prices.items() if v is not None}
-                if successful_prices:
-                    price_series = pd.Series(successful_prices)
-                    df['Market Price'] = df['Ticker'].map(price_series).combine_first(df['Market Price'])
+                fetched_data = fetch_stock_data(tickers)
+                # Create series for price and market cap
+                price_series = pd.Series({k: v['price'] if v is not None else None for k, v in fetched_data.items()})
+                market_cap_series = pd.Series(
+                    {k: v['market_cap'] if v is not None else None for k, v in fetched_data.items()})
+                # Update the DataFrame
+                df['Market Price'] = df['Ticker'].map(price_series).combine_first(df['Market Price'])
+                df['Market Cap'] = df['Ticker'].map(market_cap_series).combine_first(df['Market Cap'])
                 df.to_csv(clean_file, index=False)
-                print(f"Updated market prices for region {region} in {clean_file}")
+                print(f"Updated market prices and market caps for region {region} in {clean_file}")
             except Exception as e:
-                print(f"Error updating market prices for region {region}: {e}")
+                print(f"Error updating data for region {region}: {e}")
         else:
             # Full processing
             print(f"Performing full processing for region {region}")
