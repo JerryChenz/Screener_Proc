@@ -19,8 +19,7 @@ Output:
 Results are saved to data/screened_data with region-specific files (e.g., us_screened.csv).
 """
 
-import scrape_data_yfinance
-# import scrape_data_yahooquery
+import scrape_data
 import clean_data
 import screen_data
 import json
@@ -64,7 +63,7 @@ if __name__ == "__main__":
     # tickers_list = json_to_list(nyse_json_path)
     # failed_tickers = []
     # csv_name = 'us_nyse'
-    # scrape_data_yfinance.scrape_yfinance(tickers_list, csv_name)
+    # scrape_data.scrape_yfinance(tickers_list, csv_name)
 
     # Step 2: Clean Data
     clean_data.clean_scraped_data()
