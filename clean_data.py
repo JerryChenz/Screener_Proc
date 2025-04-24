@@ -6,29 +6,43 @@ from yahooquery import Ticker
 import time
 
 
+def chunkify(lst, n):
+    """Split a list into chunks of size n."""
+    return [lst[i:i + n] for i in range(0, len(lst), n)]
+
+
 def fetch_stock_data(tickers, retries=3, wait_time=10):
     """
     Fetch the current market prices and market capitalizations for a list of tickers using yahooquery.
     Returns a dictionary of ticker to {'price': price, 'market_cap': market_cap}, with None for failed fetches.
     """
     data = {}
-    ticker_obj = Ticker(tickers)
-    quotes = ticker_obj.quotes
-    summary_detail = ticker_obj.summary_detail
-
     failed_tickers = []
-    for ticker in tickers:
-        quote = quotes.get(ticker)
-        detail = summary_detail.get(ticker)
-        if isinstance(quote, dict) and isinstance(detail, dict):
-            price = quote.get('regularMarketPrice')
-            market_cap = detail.get('marketCap')
-            if price is not None and market_cap is not None:
-                data[ticker] = {'price': price, 'market_cap': market_cap}
+    chunk_size = 50  # Adjust this based on API limitations (e.g., 50-100 tickers per batch)
+
+    # Process tickers in chunks to avoid API limitations
+    for chunk in chunkify(tickers, chunk_size):
+        try:
+            stock = Ticker(chunk)
+            quotes = stock.quotes
+            summary_detail = stock.summary_detail
+        except Exception as e:
+            print(f"Error fetching chunk {chunk}: {e}")
+            failed_tickers.extend(chunk)
+            continue
+
+        for ticker in chunk:
+            quote = quotes.get(ticker)
+            detail = summary_detail.get(ticker)
+            if isinstance(quote, dict) and isinstance(detail, dict):
+                price = quote.get('regularMarketPrice')
+                market_cap = detail.get('marketCap')
+                if price is not None and market_cap is not None:
+                    data[ticker] = {'price': price, 'market_cap': market_cap}
+                else:
+                    failed_tickers.append(ticker)
             else:
                 failed_tickers.append(ticker)
-        else:
-            failed_tickers.append(ticker)
 
     # Retry failed tickers individually
     for ticker in failed_tickers:
