@@ -1,0 +1,7 @@
+Method to find the historical trading data:
+
+For HK stocks:
+https://webb-site.com/dbpub/
+
+Example:
+https://webb-site.com/dbpub/hpu.asp?i=29556
